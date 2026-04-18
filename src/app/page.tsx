@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { getTranslatedType } from '@/lib/constants'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -36,8 +37,14 @@ export default async function Home() {
                     <div className="text-xs text-gray-500 mb-1">No.{p.pokedex_id}</div>
                     <div className="font-medium text-lg mb-2">{displayName}</div>
                     <div className="flex gap-2 mb-3">
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">{p.type1}</span>
-                      {p.type2 && <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded-full">{p.type2}</span>}
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        {getTranslatedType(p.type1)}
+                      </span>
+                      {p.type2 && (
+                        <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                          {getTranslatedType(p.type2)}
+                        </span>
+                      )}
                     </div>
                     <div className="grid grid-cols-3 gap-1 text-xs text-gray-600">
                       <div>H: {p.base_hp}</div>
