@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { calculateStat, calculateDamageRange } from '@/lib/calculator';
+import { calculateDamageRange, calculateStat } from '@/lib/calculator';
 import { getTranslatedType } from '@/lib/constants';
-import { Shield, Sword, Activity, Zap } from 'lucide-react';
+import { Activity, Shield, Sword, Zap } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 type PokemonData = {
   id: number;
@@ -212,7 +212,7 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
       {/* 攻撃側エリア */}
       <div className="lg:col-span-4 space-y-4">
         <div className="bg-white/80 backdrop-blur-xl border border-blue-100 rounded-2xl shadow-lg p-5 transition-all hover:shadow-xl duration-300 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full opacity-50 -z-10 group-hover:scale-110 transition-transform"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full opacity-50 -z-10 group-hover:scale-110 transition-transform" />
           <div className="flex items-center gap-2 mb-4">
             <Sword className="w-5 h-5 text-blue-600" />
             <h2 className="text-xl font-bold text-gray-800">
@@ -332,7 +332,7 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
       {/* 防御側エリア */}
       <div className="lg:col-span-4 space-y-4">
         <div className="bg-white/80 backdrop-blur-xl border border-indigo-100 rounded-2xl shadow-lg p-5 transition-all hover:shadow-xl duration-300 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full opacity-50 -z-10 group-hover:scale-110 transition-transform"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full opacity-50 -z-10 group-hover:scale-110 transition-transform" />
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-indigo-600" />
             <h2 className="text-xl font-bold text-gray-800">

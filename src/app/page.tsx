@@ -1,5 +1,5 @@
-import { createClient } from '@/utils/supabase/server';
 import CalculatorApp from '@/components/calculator/CalculatorApp';
+import { createClient } from '@/utils/supabase/server';
 
 export const revalidate = 3600; // 1時間キャッシュ（マスターデータなのでキャッシュ）
 
