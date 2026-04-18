@@ -4,7 +4,7 @@ import { calculateDamageRange, calculateStat } from '@/lib/calculator';
 import { getTranslatedType } from '@/lib/constants';
 import { createClient } from '@/utils/supabase/client';
 import { Activity, Save, Shield, Sword, Swords, Zap } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 type PokemonData = {
   id: number;
