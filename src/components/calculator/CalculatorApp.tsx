@@ -459,8 +459,20 @@ export default function CalculatorApp({
                 onChange={(e) =>
                   setAtkEVs(
                     isSpecial
-                      ? { ...atkEVs, spa: Number(e.target.value) }
-                      : { ...atkEVs, atk: Number(e.target.value) },
+                      ? {
+                          ...atkEVs,
+                          spa: Math.min(
+                            32,
+                            Math.max(0, Number(e.target.value)),
+                          ),
+                        }
+                      : {
+                          ...atkEVs,
+                          atk: Math.min(
+                            32,
+                            Math.max(0, Number(e.target.value)),
+                          ),
+                        },
                   )
                 }
                 className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white"
@@ -637,7 +649,10 @@ export default function CalculatorApp({
                 step="1"
                 value={defEVs.hp}
                 onChange={(e) =>
-                  setDefEVs({ ...defEVs, hp: Number(e.target.value) })
+                  setDefEVs({
+                    ...defEVs,
+                    hp: Math.min(32, Math.max(0, Number(e.target.value))),
+                  })
                 }
                 className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white"
               />
@@ -655,8 +670,20 @@ export default function CalculatorApp({
                 onChange={(e) =>
                   setDefEVs(
                     isSpecial
-                      ? { ...defEVs, spd: Number(e.target.value) }
-                      : { ...defEVs, def: Number(e.target.value) },
+                      ? {
+                          ...defEVs,
+                          spd: Math.min(
+                            32,
+                            Math.max(0, Number(e.target.value)),
+                          ),
+                        }
+                      : {
+                          ...defEVs,
+                          def: Math.min(
+                            32,
+                            Math.max(0, Number(e.target.value)),
+                          ),
+                        },
                   )
                 }
                 className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white"
