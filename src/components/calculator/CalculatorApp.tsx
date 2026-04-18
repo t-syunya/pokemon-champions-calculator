@@ -18,6 +18,7 @@ type PokemonData = {
   base_spa: number;
   base_spd: number;
   base_spe: number;
+  abilities: string[];
 };
 
 type MoveData = {
