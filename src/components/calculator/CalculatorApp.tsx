@@ -407,7 +407,7 @@ export default function CalculatorApp({
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
               <label className="text-xs font-semibold text-gray-600">
-                持ち物 (Item)
+                持ち物
               </label>
               <select
                 value={atkItem}
@@ -423,7 +423,7 @@ export default function CalculatorApp({
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600">
-                特性 (Ability)
+                特性
               </label>
               <select
                 value={atkAbility}
@@ -590,7 +590,7 @@ export default function CalculatorApp({
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
               <label className="text-xs font-semibold text-gray-600">
-                持ち物 (Item)
+                持ち物
               </label>
               <select
                 value={defItem}
@@ -606,7 +606,7 @@ export default function CalculatorApp({
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600">
-                特性 (Ability)
+                特性
               </label>
               <select
                 value={defAbility}
