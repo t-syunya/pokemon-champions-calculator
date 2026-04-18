@@ -126,6 +126,15 @@ export default function CalculatorApp({
     [defenderId, initialPokemons],
   );
 
+  // ポケモンが変更されたら、特性1（一番目の特性）をデフォルトで設定する
+  useEffect(() => {
+    setAtkAbility(attackerData?.abilities?.[0] || '');
+  }, [attackerData]);
+
+  useEffect(() => {
+    setDefAbility(defenderData?.abilities?.[0] || '');
+  }, [defenderData]);
+
   // 実数値計算
   const attackerActualAtk = useMemo(
     () =>
@@ -501,12 +510,12 @@ export default function CalculatorApp({
                 onChange={(e) => setAtkAbility(e.target.value)}
                 className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white text-gray-700"
               >
-                <option value="">カスタム</option>
                 {attackerData?.abilities?.map((ab: string) => (
                   <option key={ab} value={ab}>
                     {ab}
                   </option>
                 ))}
+                <option value="">カスタム</option>
               </select>
               {atkAbility === '' && (
                 <input
@@ -712,12 +721,12 @@ export default function CalculatorApp({
                 onChange={(e) => setDefAbility(e.target.value)}
                 className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white text-gray-700"
               >
-                <option value="">カスタム</option>
                 {defenderData?.abilities?.map((ab: string) => (
                   <option key={ab} value={ab}>
                     {ab}
                   </option>
                 ))}
+                <option value="">カスタム</option>
               </select>
               {defAbility === '' && (
                 <input
