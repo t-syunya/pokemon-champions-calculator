@@ -20,11 +20,35 @@ type PokemonData = {
   base_spe: number;
 };
 
+type MoveData = {
+  id: number;
+  name_ja: string;
+  type: string;
+  category: string;
+  power: number;
+};
+
 interface CalculatorProps {
   initialPokemons: PokemonData[];
+  initialMoves: MoveData[];
 }
 
-export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
+const toHiragana = (str: string) => {
+  return str.replace(/[\u30a1-\u30f6]/g, (match) =>
+    String.fromCharCode(match.charCodeAt(0) - 0x60),
+  );
+};
+
+const getPokemonDisplayName = (p: PokemonData) => {
+  if (!p.form_name_ja) return p.name_ja;
+  if (p.form_name_ja.startsWith('メガ')) return p.form_name_ja;
+  return `${p.name_ja} (${p.form_name_ja})`;
+};
+
+export default function CalculatorApp({
+  initialPokemons,
+  initialMoves,
+}: CalculatorProps) {
   // === 攻撃側 (Attacker) State ===
   const [attackerId, setAttackerId] = useState<number>(
     initialPokemons[0]?.id || 25,
@@ -62,6 +86,7 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
   }>({ def: 1.1, spd: 0.9 }); // 物理受けずぶといデフォルト
 
   // === 技 (Move) State ===
+  const [selectedMoveId, setSelectedMoveId] = useState<number | null>(null);
   const [basePower, setBasePower] = useState<number>(90);
   const [isSpecial, setIsSpecial] = useState<boolean>(false); // 物理技か特殊技か
   const [modifier, setModifier] = useState<number>(1.5); // タイプ一致などの補正
@@ -170,41 +195,127 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
     ohkoChance = (killRolls / 16) * 100;
   }
 
-  const PokemonSelector = ({
+  const SearchableSelect = ({
     value,
     onChange,
     label,
     data,
+    options,
+    isMove = false,
   }: {
-    value: number;
+    value: number | null;
     onChange: (val: number) => void;
     label: string;
-    data: PokemonData;
-  }) => (
-    <div className="flex flex-col gap-1.5 mb-4">
-      <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
-        {label}
-        <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
-          {getTranslatedType(data.type1)}
-        </span>
-        {data.type2 && (
-          <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
-            {getTranslatedType(data.type2)}
-          </span>
-        )}
-      </label>
-      <select
-        className="form-select w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors p-2 text-sm"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-      >
-        {initialPokemons.map((p) => (
-          <option key={`${p.pokedex_id}-${p.id}`} value={p.id}>
-            {p.name_ja} {p.form_name_ja ? `(${p.form_name_ja})` : ''}
-          </option>
-        ))}
-      </select>
-    </div>
+    // biome-ignore lint/suspicious/noExplicitAny: generic interface
+    data: any;
+    options: { id: number; label: string; nameJa: string }[];
+    isMove?: boolean;
+  }) => {
+    const [search, setSearch] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
+
+    const filteredOptions = useMemo(() => {
+      const query = toHiragana(search);
+      return options
+        .filter((opt) => {
+          if (!query) return true;
+          return (
+            toHiragana(opt.nameJa).startsWith(query) ||
+            toHiragana(opt.label).startsWith(query)
+          );
+        })
+        .slice(0, 100); // Limit to top 100 for render perf
+    }, [options, search]);
+
+    const selectedOption = options.find((o) => o.id === value);
+
+    return (
+      <div className="flex flex-col gap-1.5 mb-4 relative">
+        <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+          {label}
+          {!isMove && data && (
+            <>
+              <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
+                {getTranslatedType(data.type1)}
+              </span>
+              {data.type2 && (
+                <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
+                  {getTranslatedType(data.type2)}
+                </span>
+              )}
+            </>
+          )}
+          {isMove && data && data.type && (
+            <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
+              {getTranslatedType(data.type)}
+            </span>
+          )}
+        </label>
+
+        <div className="relative">
+          <input
+            type="text"
+            className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-sm bg-white"
+            placeholder={
+              selectedOption ? selectedOption.label : '検索（ひらがな可）'
+            }
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+            onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          />
+
+          {isOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto top-full left-0">
+              {filteredOptions.length === 0 ? (
+                <div className="p-3 text-sm text-gray-500 text-center">
+                  見つかりません
+                </div>
+              ) : (
+                filteredOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 focus:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
+                    onMouseDown={(e) => {
+                      e.preventDefault(); // Prevent input blur
+                      onChange(opt.id);
+                      setSearch('');
+                      setIsOpen(false);
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const pokemonOptions = useMemo(
+    () =>
+      initialPokemons.map((p) => ({
+        id: p.id,
+        label: getPokemonDisplayName(p),
+        nameJa: p.name_ja,
+      })),
+    [initialPokemons],
+  );
+
+  const moveOptions = useMemo(
+    () =>
+      initialMoves.map((m) => ({
+        id: m.id,
+        label: m.name_ja,
+        nameJa: m.name_ja,
+      })),
+    [initialMoves],
   );
 
   return (
@@ -220,11 +331,12 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
             </h2>
           </div>
 
-          <PokemonSelector
+          <SearchableSelect
             value={attackerId}
             onChange={setAttackerId}
             label="ポケモンを選択"
             data={attackerData}
+            options={pokemonOptions}
           />
 
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -276,11 +388,27 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
         </div>
 
         {/* 技エリア */}
-        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-md p-5">
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-md p-5 relative z-40">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-5 h-5 text-yellow-500" />
             <h2 className="text-lg font-bold text-gray-800">使用する技</h2>
           </div>
+
+          <SearchableSelect
+            value={selectedMoveId}
+            onChange={(mId) => {
+              setSelectedMoveId(mId);
+              const moveData = initialMoves.find((m) => m.id === mId);
+              if (moveData) {
+                setBasePower(moveData.power || 0);
+                setIsSpecial(moveData.category === 'special');
+              }
+            }}
+            label="技を検索して選択"
+            data={initialMoves.find((m) => m.id === selectedMoveId)}
+            options={moveOptions}
+            isMove={true}
+          />
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-gray-600">
@@ -340,11 +468,12 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
             </h2>
           </div>
 
-          <PokemonSelector
+          <SearchableSelect
             value={defenderId}
             onChange={setDefenderId}
             label="ポケモンを選択"
             data={defenderData}
+            options={pokemonOptions}
           />
 
           <div className="grid grid-cols-2 gap-3 mb-4">

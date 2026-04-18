@@ -10,9 +10,15 @@ export default async function Home() {
   const { data: pokemons } = await supabase
     .from('master_pokemon')
     .select(
-      'id, pokedex_id, name_ja, form_name_ja, type1, type2, base_hp, base_atk, base_def, base_spa, base_spd, base_spe',
+      'id, pokedex_id, name_ja, form_name_ja, type1, type2, base_hp, base_atk, base_def, base_spa, base_spd, base_spe, abilities',
     )
     .order('pokedex_id', { ascending: true });
+
+  // 技データも取得
+  const { data: moves } = await supabase
+    .from('master_moves')
+    .select('id, name_ja, type, category, power')
+    .order('name_ja', { ascending: true });
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 selection:bg-blue-200">
@@ -27,7 +33,10 @@ export default async function Home() {
         </header>
 
         {/* クライアント側の計算アプリケーションをマウント */}
-        <CalculatorApp initialPokemons={pokemons || []} />
+        <CalculatorApp
+          initialPokemons={pokemons || []}
+          initialMoves={moves || []}
+        />
       </div>
     </main>
   );

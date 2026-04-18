@@ -152,27 +152,108 @@ async function seedPokemon() {
     `Found ${formattedPokemon.length} Pokémon entries (including all forms).`,
   );
 
-  // Supabaseに一括インサート (1000件以上ある場合、分割して投げる)
   const chunkSize = 200;
-  for (let i = 0; i < formattedPokemon.length; i += chunkSize) {
-    const chunk = formattedPokemon.slice(i, i + chunkSize);
-    const { error } = await supabase.from('master_pokemon').upsert(chunk);
-    if (error) {
-      console.error(
-        `Error inserting chunk ${i} - ${i + chunkSize}:`,
-        error.message,
-      );
-    } else {
-      console.log(`Inserted chunk ${i} - ${i + chunkSize} successfully.`);
-    }
-  }
+  let sql = 'INSERT INTO public.master_pokemon (id, pokedex_id, name_en, name_ja, form_name_en, form_name_ja, type1, type2, base_hp, base_atk, base_def, base_spa, base_spd, base_spe, abilities, weight_kg) VALUES\n';
+  
+  const values = formattedPokemon.map((p: any) => {
+    const t2 = p.type2 ? `'${p.type2}'` : 'null';
+    const fEn = p.form_name_en ? `'${p.form_name_en.replace(/'/g, "''")}'` : 'null';
+    const fJa = p.form_name_ja ? `'${p.form_name_ja.replace(/'/g, "''")}'` : 'null';
+    const abs = `'{${p.abilities.map((a:string)=>`"${a.replace(/"/g, '\\"')}"`).join(',')}}'`;
+    return `(${p.id}, ${p.pokedex_id}, '${p.name_en.replace(/'/g, "''")}', '${p.name_ja.replace(/'/g, "''")}', ${fEn}, ${fJa}, '${p.type1}', ${t2}, ${p.base_hp}, ${p.base_atk}, ${p.base_def}, ${p.base_spa}, ${p.base_spd}, ${p.base_spe}, ARRAY[${p.abilities.map((a:string)=>`'${a.replace(/'/g, "''")}'`).join(',')}], ${p.weight_kg})`;
+  });
+
+  sql += values.join(',\n') + '\nON CONFLICT (id) DO NOTHING;\n';
+  
+  const fs = require('fs');
+  fs.writeFileSync('pokemon_seed.sql', sql);
+  console.log('✅ Generated pokemon_seed.sql');
 
   console.log('✅ Pokémon database seed is complete!');
+}
+
+async function seedMoves() {
+  const query = `
+    query GetAllMoves {
+      pokemon_v2_move(where: {pokemon_v2_generation: {id: {_lte: 7}}}) {
+        id
+        name
+        power
+        accuracy
+        pp
+        priority
+        pokemon_v2_type {
+          name
+        }
+        pokemon_v2_movedamageclass {
+          name
+        }
+        pokemon_v2_movenames(where: {language_id: {_in: [1, 11]}}) {
+          name
+          language_id
+        }
+      }
+    }
+  `;
+
+  console.log('Fetching Moves from PokeAPI (GraphQL)...');
+  const response = await fetch('https://beta.pokeapi.co/graphql/v1beta', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query }),
+  });
+
+  const { data, errors } = await response.json();
+  if (errors) {
+    console.error('GraphQL Errors:', errors);
+    throw new Error('Failed to fetch moves from PokeAPI');
+  }
+
+  const rawMoves = data.pokemon_v2_move;
+  const formattedMoves = rawMoves.map((m: any) => {
+    // 日本語名
+    const names = m.pokemon_v2_movenames || [];
+    const nameJa = getJapaneseName(names) || m.name;
+
+    // カテゴリー (physical, special, status)
+    const category = m.pokemon_v2_movedamageclass?.name || 'status';
+
+    return {
+      id: m.id,
+      name_en: m.name,
+      name_ja: nameJa,
+      type: m.pokemon_v2_type?.name || 'unknown',
+      category: category,
+      power: m.power,            // nullable
+      accuracy: m.accuracy,      // nullable
+      pp: m.pp || 0,
+      priority: m.priority || 0,
+      makes_contact: false,      // TODO: map if needed later
+      is_multihit: false,        // TODO: map if needed later
+      description: null
+    };
+  });
+
+  console.log(`Found ${formattedMoves.length} Moves.`);
+
+  const values = formattedMoves.map((m: any) => {
+    return `(${m.id}, '${m.name_en.replace(/'/g, "''")}', '${m.name_ja.replace(/'/g, "''")}', '${m.type}', '${m.category}', ${m.power || 'null'}, ${m.accuracy || 'null'}, ${m.pp}, ${m.priority}, ${m.makes_contact}, ${m.is_multihit}, null)`;
+  });
+
+  const sql = 'INSERT INTO public.master_moves (id, name_en, name_ja, type, category, power, accuracy, pp, priority, makes_contact, is_multihit, description) VALUES\n' + 
+      values.join(',\n') + '\nON CONFLICT (id) DO NOTHING;\n';
+
+  const fs = require('fs');
+  fs.writeFileSync('moves_seed.sql', sql);
+  console.log('✅ Generated moves_seed.sql');
+
+  console.log('✅ Moves database seed is complete!');
 }
 
 async function main() {
   console.log('Starting DB seed script...');
   await seedPokemon();
+  await seedMoves();
 }
 
 main().catch(console.error);
