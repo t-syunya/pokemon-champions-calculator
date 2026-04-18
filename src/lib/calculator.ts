@@ -1,11 +1,12 @@
 export type StatName = 'hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe';
 
-export interface StatCalcParams {
+interface CalcStatArgs {
   baseStat: number;
   iv: number;
   ev: number;
   level: number;
   natureMultiplier: 1.1 | 1.0 | 0.9;
+  item?: string;
 }
 
 export interface DamageCalcParams {
@@ -68,10 +69,8 @@ export function calculateDamageRange({
  */
 export function calculateStat(
   statName: StatName,
-  params: StatCalcParams,
+  { baseStat, iv, ev, level, natureMultiplier, item }: CalcStatArgs,
 ): number {
-  const { baseStat, iv, ev, level, natureMultiplier } = params;
-
   if (statName === 'hp') {
     if (baseStat === 1) return 1; // ヌケニン特例
     return (
@@ -83,5 +82,21 @@ export function calculateStat(
 
   const rawStat =
     Math.floor(((baseStat * 2 + iv + Math.floor(ev / 4)) * level) / 100) + 5;
-  return Math.floor(rawStat * natureMultiplier);
+  const natureStat = Math.floor(rawStat * natureMultiplier);
+
+  // アイテムによるステータス実数値の上書き補正
+  let itemMultiplier = 1.0;
+  if (item === 'こだわりハチマキ' && statName === 'atk') itemMultiplier = 1.5;
+  else if (item === 'こだわりメガネ' && statName === 'spa')
+    itemMultiplier = 1.5;
+  else if (item === 'とつげきチョッキ' && statName === 'spd')
+    itemMultiplier = 1.5;
+  else if (
+    item === 'しんかのきせき' &&
+    (statName === 'def' || statName === 'spd')
+  )
+    itemMultiplier = 1.5;
+
+  // 四捨五入か切り捨ては実機仕様によるが基本は切り捨て
+  return Math.floor(natureStat * itemMultiplier);
 }

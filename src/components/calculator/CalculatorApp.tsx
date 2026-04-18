@@ -45,6 +45,17 @@ const getPokemonDisplayName = (p: PokemonData) => {
   return `${p.name_ja} (${p.form_name_ja})`;
 };
 
+const ITEM_OPTIONS = [
+  'なし',
+  'いのちのたま',
+  'こだわりハチマキ',
+  'こだわりメガネ',
+  'とつげきチョッキ',
+  'しんかのきせき',
+  'たつじんのおび',
+  'タイプ強化アイテム(プレート等)',
+];
+
 export default function CalculatorApp({
   initialPokemons,
   initialMoves,
@@ -66,6 +77,8 @@ export default function CalculatorApp({
     atk: number;
     spa: number;
   }>({ atk: 1.1, spa: 0.9 }); // 物理特化のいじっぱりをデフォルト
+  const [atkItem, setAtkItem] = useState<string>('なし');
+  const [atkAbility, setAtkAbility] = useState<string>('');
 
   // === 防御側 (Defender) State ===
   const [defenderId, setDefenderId] = useState<number>(
@@ -84,6 +97,8 @@ export default function CalculatorApp({
     def: number;
     spd: number;
   }>({ def: 1.1, spd: 0.9 }); // 物理受けずぶといデフォルト
+  const [defItem, setDefItem] = useState<string>('なし');
+  const [defAbility, setDefAbility] = useState<string>('');
 
   // === 技 (Move) State ===
   const [selectedMoveId, setSelectedMoveId] = useState<number | null>(null);
@@ -112,8 +127,9 @@ export default function CalculatorApp({
         ev: atkEVs.atk,
         level: atkLevel,
         natureMultiplier: atkNatureMult.atk as 1.1 | 1.0 | 0.9,
+        item: atkItem,
       }),
-    [attackerData, atkEVs, atkLevel, atkNatureMult],
+    [attackerData, atkEVs, atkLevel, atkNatureMult, atkItem],
   );
   const attackerActualSpa = useMemo(
     () =>
@@ -123,8 +139,9 @@ export default function CalculatorApp({
         ev: atkEVs.spa,
         level: atkLevel,
         natureMultiplier: atkNatureMult.spa as 1.1 | 1.0 | 0.9,
+        item: atkItem,
       }),
-    [attackerData, atkEVs, atkLevel, atkNatureMult],
+    [attackerData, atkEVs, atkLevel, atkNatureMult, atkItem],
   );
 
   const defenderActualHp = useMemo(
@@ -146,8 +163,9 @@ export default function CalculatorApp({
         ev: defEVs.def,
         level: defLevel,
         natureMultiplier: defNatureMult.def as 1.1 | 1.0 | 0.9,
+        item: defItem,
       }),
-    [defenderData, defEVs, defLevel, defNatureMult],
+    [defenderData, defEVs, defLevel, defNatureMult, defItem],
   );
   const defenderActualSpd = useMemo(
     () =>
@@ -157,18 +175,27 @@ export default function CalculatorApp({
         ev: defEVs.spd,
         level: defLevel,
         natureMultiplier: defNatureMult.spd as 1.1 | 1.0 | 0.9,
+        item: defItem,
       }),
-    [defenderData, defEVs, defLevel, defNatureMult],
+    [defenderData, defEVs, defLevel, defNatureMult, defItem],
   );
 
   // ダメージ計算実行
   const damageRolls = useMemo(() => {
+    let itemDamageMultiplier = 1.0;
+    if (atkItem === 'いのちのたま') itemDamageMultiplier = 1.3;
+    if (atkItem === 'たつじんのおび') itemDamageMultiplier = 1.2;
+    if (atkItem === 'タイプ強化アイテム(プレート等)')
+      itemDamageMultiplier = 1.2;
+
+    const finalModifier = modifier * itemDamageMultiplier;
+
     return calculateDamageRange({
       level: atkLevel,
       basePower: basePower,
       attackStat: isSpecial ? attackerActualSpa : attackerActualAtk,
       defenseStat: isSpecial ? defenderActualSpd : defenderActualDef,
-      modifier: modifier,
+      modifier: finalModifier,
       isCritical: false,
     });
   }, [
@@ -180,6 +207,7 @@ export default function CalculatorApp({
     defenderActualSpd,
     defenderActualDef,
     modifier,
+    atkItem,
   ]);
 
   const minDamage = damageRolls[0];
@@ -375,6 +403,49 @@ export default function CalculatorApp({
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="text-xs font-semibold text-gray-600">
+                持ち物 (Item)
+              </label>
+              <select
+                value={atkItem}
+                onChange={(e) => setAtkItem(e.target.value)}
+                className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white text-gray-700"
+              >
+                {ITEM_OPTIONS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600">
+                特性 (Ability)
+              </label>
+              <select
+                value={atkAbility}
+                onChange={(e) => setAtkAbility(e.target.value)}
+                className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white text-gray-700"
+              >
+                <option value="">カスタム</option>
+                {attackerData?.abilities?.map((ab: string) => (
+                  <option key={ab} value={ab}>
+                    {ab}
+                  </option>
+                ))}
+              </select>
+              {atkAbility === '' && (
+                <input
+                  type="text"
+                  placeholder="特性名を手入力"
+                  className="w-full mt-1 p-1 text-xs border rounded"
+                />
+              )}
+            </div>
+          </div>
+
           <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
             <div className="flex justify-between items-center text-sm">
               <span className="font-medium text-gray-700">
@@ -512,6 +583,49 @@ export default function CalculatorApp({
                 }
                 className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="text-xs font-semibold text-gray-600">
+                持ち物 (Item)
+              </label>
+              <select
+                value={defItem}
+                onChange={(e) => setDefItem(e.target.value)}
+                className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white text-gray-700"
+              >
+                {ITEM_OPTIONS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600">
+                特性 (Ability)
+              </label>
+              <select
+                value={defAbility}
+                onChange={(e) => setDefAbility(e.target.value)}
+                className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white text-gray-700"
+              >
+                <option value="">カスタム</option>
+                {defenderData?.abilities?.map((ab: string) => (
+                  <option key={ab} value={ab}>
+                    {ab}
+                  </option>
+                ))}
+              </select>
+              {defAbility === '' && (
+                <input
+                  type="text"
+                  placeholder="特性名を手入力"
+                  className="w-full mt-1 p-1 text-xs border rounded"
+                />
+              )}
             </div>
           </div>
 
