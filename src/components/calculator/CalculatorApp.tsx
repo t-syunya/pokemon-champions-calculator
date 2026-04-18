@@ -86,7 +86,7 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
         iv: 31,
         ev: atkEVs.atk,
         level: atkLevel,
-        natureMultiplier: atkNatureMult.atk as any,
+        natureMultiplier: atkNatureMult.atk as 1.1 | 1.0 | 0.9,
       }),
     [attackerData, atkEVs, atkLevel, atkNatureMult],
   );
@@ -97,7 +97,7 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
         iv: 31,
         ev: atkEVs.spa,
         level: atkLevel,
-        natureMultiplier: atkNatureMult.spa as any,
+        natureMultiplier: atkNatureMult.spa as 1.1 | 1.0 | 0.9,
       }),
     [attackerData, atkEVs, atkLevel, atkNatureMult],
   );
@@ -120,7 +120,7 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
         iv: 31,
         ev: defEVs.def,
         level: defLevel,
-        natureMultiplier: defNatureMult.def as any,
+        natureMultiplier: defNatureMult.def as 1.1 | 1.0 | 0.9,
       }),
     [defenderData, defEVs, defLevel, defNatureMult],
   );
@@ -131,7 +131,7 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
         iv: 31,
         ev: defEVs.spd,
         level: defLevel,
-        natureMultiplier: defNatureMult.spd as any,
+        natureMultiplier: defNatureMult.spd as 1.1 | 1.0 | 0.9,
       }),
     [defenderData, defEVs, defLevel, defNatureMult],
   );
@@ -170,8 +170,17 @@ export default function CalculatorApp({ initialPokemons }: CalculatorProps) {
     ohkoChance = (killRolls / 16) * 100;
   }
 
-  // Helper Components
-  const PokemonSelector = ({ value, onChange, label, data }: any) => (
+  const PokemonSelector = ({
+    value,
+    onChange,
+    label,
+    data,
+  }: {
+    value: number;
+    onChange: (val: number) => void;
+    label: string;
+    data: PokemonData;
+  }) => (
     <div className="flex flex-col gap-1.5 mb-4">
       <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
         {label}
