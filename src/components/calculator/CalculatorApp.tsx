@@ -4,7 +4,7 @@ import { calculateDamageRange, calculateStat } from '@/lib/calculator';
 import { getTranslatedType } from '@/lib/constants';
 import { createClient } from '@/utils/supabase/client';
 import { Activity, Save, Shield, Sword, Swords, Zap } from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type PokemonData = {
   id: number;
@@ -515,15 +515,7 @@ export default function CalculatorApp({
                     {ab}
                   </option>
                 ))}
-                <option value="">カスタム</option>
               </select>
-              {atkAbility === '' && (
-                <input
-                  type="text"
-                  placeholder="特性名を手入力"
-                  className="w-full mt-1 p-1 text-xs border rounded"
-                />
-              )}
             </div>
           </div>
 
@@ -726,15 +718,7 @@ export default function CalculatorApp({
                     {ab}
                   </option>
                 ))}
-                <option value="">カスタム</option>
               </select>
-              {defAbility === '' && (
-                <input
-                  type="text"
-                  placeholder="特性名を手入力"
-                  className="w-full mt-1 p-1 text-xs border rounded"
-                />
-              )}
             </div>
           </div>
 
