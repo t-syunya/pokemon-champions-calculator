@@ -566,8 +566,8 @@ export default function CalculatorApp({
                 onChange={(e) => setIsSpecial(e.target.value === '1')}
                 className="w-full mt-1 p-2 text-sm border rounded bg-gray-50 focus:bg-white"
               >
-                <option value="0">ぶつり</option>
-                <option value="1">とくしゅ</option>
+                <option value="0">物理</option>
+                <option value="1">特殊</option>
               </select>
             </div>
           </div>
