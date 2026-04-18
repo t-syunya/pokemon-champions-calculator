@@ -73,15 +73,14 @@ export function calculateStat(
 ): number {
   if (statName === 'hp') {
     if (baseStat === 1) return 1; // ヌケニン特例
+    const evBump = ev > 0 ? ev * 2 - 1 : 0;
     return (
-      Math.floor(((baseStat * 2 + iv + Math.floor(ev / 4)) * level) / 100) +
-      level +
-      10
+      Math.floor(((baseStat * 2 + iv + evBump) * level) / 100) + level + 10
     );
   }
 
-  const rawStat =
-    Math.floor(((baseStat * 2 + iv + Math.floor(ev / 4)) * level) / 100) + 5;
+  const evBump = ev > 0 ? ev * 2 - 1 : 0;
+  const rawStat = Math.floor(((baseStat * 2 + iv + evBump) * level) / 100) + 5;
   const natureStat = Math.floor(rawStat * natureMultiplier);
 
   // アイテムによるステータス実数値の上書き補正

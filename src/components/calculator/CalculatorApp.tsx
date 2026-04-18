@@ -75,11 +75,11 @@ export default function CalculatorApp({
   const [atkLevel, setAtkLevel] = useState<number>(50);
   const [atkEVs, setAtkEVs] = useState({
     hp: 0,
-    atk: 252,
+    atk: 32,
     def: 0,
     spa: 0,
     spd: 0,
-    spe: 252,
+    spe: 32,
   });
   const [atkNatureMult, setAtkNatureMult] = useState<{
     atk: number;
@@ -94,9 +94,9 @@ export default function CalculatorApp({
   );
   const [defLevel, setDefLevel] = useState<number>(50);
   const [defEVs, setDefEVs] = useState({
-    hp: 252,
+    hp: 32,
     atk: 0,
-    def: 252,
+    def: 32,
     spa: 0,
     spd: 0,
     spe: 0,
@@ -453,8 +453,8 @@ export default function CalculatorApp({
               <input
                 type="number"
                 min="0"
-                max="252"
-                step="4"
+                max="32"
+                step="1"
                 value={isSpecial ? atkEVs.spa : atkEVs.atk}
                 onChange={(e) =>
                   setAtkEVs(
@@ -548,7 +548,7 @@ export default function CalculatorApp({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-gray-600">
-                威力 (Power)
+                威力
               </label>
               <input
                 type="number"
@@ -633,8 +633,8 @@ export default function CalculatorApp({
               <input
                 type="number"
                 min="0"
-                max="252"
-                step="4"
+                max="32"
+                step="1"
                 value={defEVs.hp}
                 onChange={(e) =>
                   setDefEVs({ ...defEVs, hp: Number(e.target.value) })
@@ -649,8 +649,8 @@ export default function CalculatorApp({
               <input
                 type="number"
                 min="0"
-                max="252"
-                step="4"
+                max="32"
+                step="1"
                 value={isSpecial ? defEVs.spd : defEVs.def}
                 onChange={(e) =>
                   setDefEVs(
