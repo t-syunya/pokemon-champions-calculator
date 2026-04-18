@@ -409,7 +409,7 @@ export default function CalculatorApp({
           <div className="flex items-center justify-between mb-4 border-b pb-3">
             <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
               <Sword className="w-5 h-5 text-blue-600" />
-              攻撃側 (Attacker)
+              攻撃側
             </h2>
             {user && (
               <button
@@ -602,7 +602,7 @@ export default function CalculatorApp({
           <div className="flex items-center justify-between mb-4 border-b pb-3 text-indigo-800">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              防御側 (Defender)
+              防御側
             </h2>
             {user && (
               <button

@@ -32,9 +32,6 @@ export default async function Home() {
             <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight">
               Pokémon Champions Calculator
             </h1>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              USUM (Gen 7) Damage Calculator
-            </p>
           </div>
           <AuthButton />
         </header>
