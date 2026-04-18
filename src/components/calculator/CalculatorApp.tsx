@@ -2,7 +2,8 @@
 
 import { calculateDamageRange, calculateStat } from '@/lib/calculator';
 import { getTranslatedType } from '@/lib/constants';
-import { Activity, Shield, Sword, Zap } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
+import { Activity, Save, Shield, Sword, Swords, Zap } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type PokemonData = {
@@ -32,6 +33,8 @@ type MoveData = {
 interface CalculatorProps {
   initialPokemons: PokemonData[];
   initialMoves: MoveData[];
+  // biome-ignore lint/suspicious/noExplicitAny: generic user map
+  user: any;
 }
 
 const toHiragana = (str: string) => {
@@ -60,7 +63,11 @@ const ITEM_OPTIONS = [
 export default function CalculatorApp({
   initialPokemons,
   initialMoves,
+  user,
 }: CalculatorProps) {
+  const supabase = createClient();
+  const [isSaving, setIsSaving] = useState(false);
+
   // === 攻撃側 (Attacker) State ===
   const [attackerId, setAttackerId] = useState<number>(
     initialPokemons[0]?.id || 25,
@@ -144,6 +151,50 @@ export default function CalculatorApp({
       }),
     [attackerData, atkEVs, atkLevel, atkNatureMult, atkItem],
   );
+
+  const handleSaveBuild = async (role: 'attacker' | 'defender') => {
+    if (!user) {
+      alert('保存するにはログインが必要です。');
+      return;
+    }
+
+    setIsSaving(true);
+    const pokemonId = role === 'attacker' ? attackerId : defenderId;
+    const level = role === 'attacker' ? atkLevel : defLevel;
+    const ability = role === 'attacker' ? atkAbility : defAbility;
+    const item = role === 'attacker' ? atkItem : defItem;
+    // For Nature, pick the highest stat mult conceptually, or just store a custom label.
+    // Here we just save "Custom" to satisfy NOT NULL.
+    const nature = 'Custom';
+    const evs = role === 'attacker' ? atkEVs : defEVs;
+
+    const { error } = await supabase.from('saved_builds').insert({
+      user_id: user.id,
+      pokemon_id: pokemonId,
+      level,
+      nature,
+      ability: ability || 'なし',
+      item: item === 'なし' ? null : item,
+      ev_hp: evs.hp,
+      ev_atk: evs.atk,
+      ev_def: evs.def,
+      ev_spa: evs.spa,
+      ev_spd: evs.spd,
+      ev_spe: evs.spe,
+      move1_id: role === 'attacker' ? selectedMoveId : null,
+    });
+
+    setIsSaving(false);
+
+    if (error) {
+      console.error(error);
+      alert(`保存に失敗しました: ${error.message}`);
+    } else {
+      alert(
+        `${role === 'attacker' ? '攻撃側' : '防御側'}の調整を保存しました！`,
+      );
+    }
+  };
 
   const defenderActualHp = useMemo(
     () =>
@@ -353,11 +404,24 @@ export default function CalculatorApp({
       <div className="lg:col-span-4 space-y-4">
         <div className="bg-white/80 backdrop-blur-xl border border-blue-100 rounded-2xl shadow-lg p-5 transition-all hover:shadow-xl duration-300 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full opacity-50 -z-10 group-hover:scale-110 transition-transform" />
-          <div className="flex items-center gap-2 mb-4">
-            <Sword className="w-5 h-5 text-blue-600" />
-            <h2 className="text-xl font-bold text-gray-800">
+
+          {/* パネルヘッダー */}
+          <div className="flex items-center justify-between mb-4 border-b pb-3">
+            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+              <Sword className="w-5 h-5 text-blue-600" />
               攻撃側 (Attacker)
             </h2>
+            {user && (
+              <button
+                type="button"
+                onClick={() => handleSaveBuild('attacker')}
+                disabled={isSaving}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
+              >
+                <Save className="w-3.5 h-3.5" />
+                保存
+              </button>
+            )}
           </div>
 
           <SearchableSelect
@@ -533,11 +597,24 @@ export default function CalculatorApp({
       <div className="lg:col-span-4 space-y-4">
         <div className="bg-white/80 backdrop-blur-xl border border-indigo-100 rounded-2xl shadow-lg p-5 transition-all hover:shadow-xl duration-300 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full opacity-50 -z-10 group-hover:scale-110 transition-transform" />
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-xl font-bold text-gray-800">
+
+          {/* パネルヘッダー */}
+          <div className="flex items-center justify-between mb-4 border-b pb-3 text-indigo-800">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Shield className="w-5 h-5" />
               防御側 (Defender)
             </h2>
+            {user && (
+              <button
+                type="button"
+                onClick={() => handleSaveBuild('defender')}
+                disabled={isSaving}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 rounded-md transition-colors"
+              >
+                <Save className="w-3.5 h-3.5" />
+                保存
+              </button>
+            )}
           </div>
 
           <SearchableSelect

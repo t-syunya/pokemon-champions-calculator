@@ -1,3 +1,4 @@
+import AuthButton from '@/components/AuthButton';
 import CalculatorApp from '@/components/calculator/CalculatorApp';
 import { createClient } from '@/utils/supabase/server';
 
@@ -5,6 +6,9 @@ export const revalidate = 3600; // 1時間キャッシュ（マスターデー�
 
 export default async function Home() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // マスターから全ポケモンの基礎データを取得してクライアントへ渡す
   const { data: pokemons } = await supabase
@@ -23,19 +27,23 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 selection:bg-blue-200">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <header className="mb-8 text-center sm:text-left">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-500">
-            ポケモン ダメージ計算機
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            USUMルール準拠・リアルタイム計算 (Pokemon Champions Calculator)
-          </p>
+        <header className="mb-6 pb-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight">
+              Pokémon Champions Calculator
+            </h1>
+            <p className="text-sm text-gray-500 mt-1 font-medium">
+              USUM (Gen 7) Damage Calculator
+            </p>
+          </div>
+          <AuthButton />
         </header>
 
         {/* クライアント側の計算アプリケーションをマウント */}
         <CalculatorApp
           initialPokemons={pokemons || []}
           initialMoves={moves || []}
+          user={user}
         />
       </div>
     </main>
