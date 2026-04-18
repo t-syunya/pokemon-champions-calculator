@@ -437,14 +437,9 @@ export default function CalculatorApp({
               <label className="text-xs font-semibold text-gray-600">
                 レベル
               </label>
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={atkLevel}
-                onChange={(e) => setAtkLevel(Number(e.target.value))}
-                className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-50 focus:bg-white"
-              />
+              <div className="w-full mt-1 p-1.5 text-sm border rounded bg-gray-100 text-gray-500 cursor-not-allowed font-medium">
+                Lv.{atkLevel} (固定)
+              </div>
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600">
