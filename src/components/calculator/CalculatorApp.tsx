@@ -1,7 +1,7 @@
 'use client';
 
 import { calculateDamageRange, calculateStat } from '@/lib/calculator';
-import { getTranslatedType } from '@/lib/constants';
+import { getTranslatedType, getTypeColor } from '@/lib/constants';
 import { createClient } from '@/utils/supabase/client';
 import { Activity, Save, Shield, Sword, Swords, Zap } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -324,18 +324,24 @@ export default function CalculatorApp({
           {label}
           {!isMove && data && (
             <>
-              <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
+              <span
+                className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${getTypeColor(data.type1)}`}
+              >
                 {getTranslatedType(data.type1)}
               </span>
               {data.type2 && (
-                <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
+                <span
+                  className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${getTypeColor(data.type2)}`}
+                >
                   {getTranslatedType(data.type2)}
                 </span>
               )}
             </>
           )}
           {isMove && data && data.type && (
-            <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-200 rounded-full">
+            <span
+              className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${getTypeColor(data.type)}`}
+            >
               {getTranslatedType(data.type)}
             </span>
           )}
